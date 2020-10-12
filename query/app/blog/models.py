@@ -166,6 +166,9 @@ class CommonInfo(models.Model):
 class Person1(models.Model):
     location = models.CharField(max_length=200)
 
+    class Meta:
+        abstract = True
 
-class Student(CommonInfo, Person1):
-    home_group = models.CharField(max_length=5, default='')
+
+class Student(CommonInfo):
+    home_group = models.CharField(max_length=10)
