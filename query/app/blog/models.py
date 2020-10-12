@@ -1,3 +1,4 @@
+import datetime
 from datetime import date
 
 from django.contrib.auth import get_user_model
@@ -25,38 +26,6 @@ class Comment(models.Model):
 
     def __str__(self):
         return str(self.post)
-
-
-# -------------------------------------------------------------
-class Blog(models.Model):
-    name = models.CharField(max_length=100)
-    tagline = models.TextField()
-
-    def __str__(self):
-        return self.name
-
-
-class Author(models.Model):
-    name = models.CharField(max_length=200)
-    email = models.EmailField()
-
-    def __str__(self):
-        return self.name
-
-
-class Entry(models.Model):
-    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
-    headline = models.CharField(max_length=255)
-    body_text = models.TextField()
-    pub_date = models.DateField(auto_now_add=True)
-    mod_date = models.DateField(auto_now=True)
-    authors = models.ManyToManyField(Author)
-    number_of_comments = models.IntegerField()
-    number_of_pingbacks = models.IntegerField()
-    rating = models.IntegerField()
-
-    def __str__(self):
-        return self.headline
 
 
 # -------------------------------------------------------------
@@ -148,12 +117,20 @@ class NormalUser(Accounts):
         return self.role == self.role.NORMAL
 
 
+class ForeignKeyUser(models.Model):
+    name = models.CharField(max_length=100)
+    is_staff = models.BooleanField(default=False)
+
+
 class StaffUser(Accounts):
-    role = models.CharField(max_length=6, default=RoleChoices.STAFF, editable=False)
+    f_user = models.ForeignKey(ForeignKeyUser, on_delete=models.CASCADE, limit_choices_to={'is_staff': True})
+    role = models.CharField(max_length=6, default=RoleChoices.STAFF, editable=False, db_index=True)
 
-    def is_staff(self):
-        return self.role == self.role.STAFF
+    # def is_staff(self):
+    #     return self.role == self.role.STAFF
 
+
+# ----------------------------------------------------------------
 
 class CommonInfo(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
@@ -168,7 +145,76 @@ class Person1(models.Model):
 
     class Meta:
         abstract = True
+        base_manager_name = 'objects'
 
 
-class Student(CommonInfo):
+class Student(Person1):
     home_group = models.CharField(max_length=10)
+
+
+# table space
+
+class TablespaceExample(models.Model):
+    name = models.CharField(max_length=30, db_index=True, db_tablespace="indexes")
+    data = models.CharField(max_length=255, db_index=True)
+    shortcut = models.CharField(max_length=7)
+    edges = models.ManyToManyField(to="self", db_tablespace="indexes")
+
+    class Meta:
+        db_tablespace = "tables"
+        indexes = [models.Index(fields=['shortcut'], db_tablespace='other_indexes')]
+
+
+# django doc - making queries
+from django.db import models
+
+
+class Blog(models.Model):
+    name = models.CharField(max_length=100)
+    tagline = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+
+    def __str__(self):
+        return self.name
+
+
+class Entry(models.Model):
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
+    headline = models.CharField(max_length=255)
+    body_text = models.TextField()
+    pub_date = models.DateField()
+    mod_date = models.DateField()
+    authors = models.ManyToManyField(Author)
+    number_of_comments = models.IntegerField()
+    number_of_pingbacks = models.IntegerField()
+    rating = models.IntegerField()
+
+    def __str__(self):
+        return self.headline
+
+
+print(datetime.date.today())
+"""
+>>> b = Blog.objects.exclude(
+    entry__headline__contains='Lennon',
+    entry__pub_date__year=2008,
+)
+>>> print(b.query)
+SELECT "blog_blog"."id", "blog_blog"."name", "blog_blog"."tagline" FROM "blog_blog" WHERE NOT ("blog_blog"."id" IN (SELECT U1."blog_id" FROM "blog_entry" U1 WHERE U1."headline" LIKE %Lennon% ESCAPE '\') AND "blog_blog"."id" IN (SELECT U1."blog_id" FROM "blog_entry" U1 WHERE U1."pub_date" BETWEEN 2008-01-01 AND 2008-12-31))
+
+
+>>> b = Blog.objects.exclude(
+    entry__in=Entry.objects.filter(
+        headline__contains='Lennon',
+        pub_date__year=2008,
+    ),
+)
+SELECT "blog_blog"."id", "blog_blog"."name", "blog_blog"."tagline" FROM "blog_blog" WHERE NOT ("blog_blog"."id" IN (SELECT V1."blog_id" FROM "blog_entry" V1 WHERE V1."id" IN (SELECT U0."id" FROM "blog_entry" U0 WHERE (U0."headline" LIKE %Lennon% ESCAPE '\' AND U0."pub_date" BETWEEN 2008-01-01 AND 2008-12-31))))
+"""
