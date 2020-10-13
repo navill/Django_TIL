@@ -189,12 +189,12 @@ class Entry(models.Model):
     blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
     headline = models.CharField(max_length=255)
     body_text = models.TextField()
-    pub_date = models.DateField()
-    mod_date = models.DateField()
+    pub_date = models.DateField(blank=True, null=True)
+    mod_date = models.DateField(blank=True, null=True)
     authors = models.ManyToManyField(Author)
-    number_of_comments = models.IntegerField()
-    number_of_pingbacks = models.IntegerField()
-    rating = models.IntegerField()
+    number_of_comments = models.IntegerField(blank=True, null=True)
+    number_of_pingbacks = models.IntegerField(blank=True, null=True)
+    rating = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.headline
@@ -208,7 +208,6 @@ print(datetime.date.today())
 )
 >>> print(b.query)
 SELECT "blog_blog"."id", "blog_blog"."name", "blog_blog"."tagline" FROM "blog_blog" WHERE NOT ("blog_blog"."id" IN (SELECT U1."blog_id" FROM "blog_entry" U1 WHERE U1."headline" LIKE %Lennon% ESCAPE '\') AND "blog_blog"."id" IN (SELECT U1."blog_id" FROM "blog_entry" U1 WHERE U1."pub_date" BETWEEN 2008-01-01 AND 2008-12-31))
-
 
 >>> b = Blog.objects.exclude(
     entry__in=Entry.objects.filter(
