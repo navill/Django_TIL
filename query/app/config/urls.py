@@ -12,18 +12,21 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-import debug_toolbar
+# """
+# import debug_toolbar
 from django.contrib import admin
 from django.urls import path, include
 
-from blog.views import PostView, CommentView
+# from blog.views import PostView, CommentView
+#
+from blog.views import test_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('post/<int:pk>', PostView.as_view()),
-    path('post/', PostView.as_view()),
-    path('comment/', CommentView.as_view()),
-    path('comment/<int:pk>', CommentView.as_view()),
-    path('__debug__/', include(debug_toolbar.urls)),
+#     path('post/<int:pk>', PostView.as_view()),
+#     path('post/', PostView.as_view()),
+#     path('comment/', CommentView.as_view()),
+#     path('comment/<int:pk>', CommentView.as_view()),
+#     path('__debug__/', include(debug_toolbar.urls)),
+    path('list/', test_view)
 ]
