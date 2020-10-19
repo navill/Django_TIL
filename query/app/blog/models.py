@@ -211,6 +211,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, **kwargs):
         user = self._default_set(**kwargs)
+        user.is_admin = True
         self._add_permissions(user, is_admin=True)
         return user
 
@@ -227,7 +228,7 @@ class UserManager(BaseUserManager):
 
         if include_default:  # 자동으로 생성된(add, change, delete, view) permissions 포함
             if is_admin:
-                permissions = Permission.objects.filter(content_type=content_type)
+                permissions = Permission.objects.all()
             else:
                 permissions = Permission.objects.filter(content_type=content_type)
 
