@@ -5,7 +5,6 @@ from django.contrib.auth.models import Permission, PermissionsMixin
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-
 # User = get_user_model()
 # User = None
 
@@ -201,6 +200,9 @@ from django.db import models
 #
 #     def __str__(self):
 #         return self.headline
+from django.urls import reverse
+
+from blog.validators import validate_tasty
 
 
 class UserManager(BaseUserManager):
@@ -286,5 +288,26 @@ class TaskModel(models.Model):
         ]
 
 
+class TastyTitleAbstractModel(models.Model):
+    title = models.CharField(max_length=255, validators=[validate_tasty])
+
+    class Meta:
+        abstract = True
 
 
+class Flavor(TastyTitleAbstractModel):
+    slug = models.SlugField()
+    scoops_remaining = models.IntegerField(default=0)
+
+    def get_absolute_url(self):
+        return reverse("flavors:detail", kwargs={"slug": self.slug})
+
+
+class IceCreamStore(models.Model):
+    title = models.CharField(max_length=100)
+    block_address = models.TextField()
+    phone = models.CharField(max_length=20, blank=True)
+    description = models.TextField(blank=True)
+
+    def get_absolute_url(self):
+        return reverse("store_detail", kwargs={'pk': self.pk})

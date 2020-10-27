@@ -88,8 +88,14 @@
 #         serializer = self.get_serializer(queryset, many=True)
 #         return Response(serializer.data)
 # views
+from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
+from django.views.generic import CreateView, UpdateView, DetailView, ListView
+
+from blog.forms import FlavorForm
+from blog.models import Flavor, IceCreamStore
 
 
 @permission_required('blog.close_task', login_url='/admin/login/')
@@ -97,4 +103,46 @@ def test_view(request):
     return HttpResponse('accept')
 
 
+# ----------------------------------------------------------------------------------------------------
+class FlavorActionMixin:
+    model = Flavor
+    fields = ['title', 'slug', 'scoops_remaining']
 
+    @property
+    def success_msg(self):
+        return NotImplemented
+
+    def form_valid(self, form):
+        messages.info(self.request, self.success_msg)
+        super().form_valid(form)
+
+
+class FlavorCreateView(LoginRequiredMixin, FlavorActionMixin, CreateView):
+    success_msg = 'created'
+    form_class = FlavorForm
+
+
+class FlavorUpdateView(LoginRequiredMixin, FlavorActionMixin, UpdateView):
+    success_msg = 'updated'
+    form_class = FlavorForm
+
+
+class FlavorDetailView(DetailView):
+    model = Flavor
+
+
+class TitleSearchMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        q = self.request.GET.get('q')
+        if q:
+            return queryset.filter(title__icontains=q)
+        return queryset
+
+
+class FlavorListView(TitleSearchMixin, ListView):
+    model = Flavor
+
+
+class IceCreamListVIew(TitleSearchMixin, ListView):
+    model = IceCreamStore

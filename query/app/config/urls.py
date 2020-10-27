@@ -19,14 +19,16 @@ from django.urls import path, include
 
 # from blog.views import PostView, CommentView
 #
-from blog.views import test_view
+from blog.views import test_view, FlavorCreateView, FlavorUpdateView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-#     path('post/<int:pk>', PostView.as_view()),
-#     path('post/', PostView.as_view()),
-#     path('comment/', CommentView.as_view()),
-#     path('comment/<int:pk>', CommentView.as_view()),
-#     path('__debug__/', include(debug_toolbar.urls)),
-    path('list/', test_view)
+    #     path('post/<int:pk>', PostView.as_view()),
+    #     path('post/', PostView.as_view()),
+    #     path('comment/', CommentView.as_view()),
+    #     path('comment/<int:pk>', CommentView.as_view()),
+    #     path('__debug__/', include(debug_toolbar.urls)),
+    path('list/', test_view),
+    path('tasty/create/', FlavorCreateView.as_view(), name='create'),
+    path('tasty/create/', FlavorUpdateView.as_view(), name='update'),
 ]
