@@ -1,5 +1,6 @@
 # from django.contrib.auth import get_user_model
 # from django.contrib.auth.backends import ModelBackend
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import Permission, PermissionsMixin
 from django.contrib.contenttypes.models import ContentType
@@ -201,6 +202,7 @@ from django.db import models
 #     def __str__(self):
 #         return self.headline
 from django.urls import reverse
+from django.utils import timezone
 
 from blog.validators import validate_tasty
 
@@ -311,3 +313,111 @@ class IceCreamStore(models.Model):
 
     def get_absolute_url(self):
         return reverse("store_detail", kwargs={'pk': self.pk})
+
+
+# ---------------------------------------------------------------------------
+class VoucherManager(models.Manager):
+    def age_breakdown(self):
+        age_brackets = []
+        now = timezone.now()
+        delta = now - relativedelta(years=18)
+        count = self.model.objects.filter(birth_date__gt=delta).count()
+        age_brackets.append(
+            {'title': '0-17', 'count': count}
+        )
+        count = self.model.objects.filter(birth_date__lte=delta).count()
+        age_brackets.append(
+            {'title': '18+', 'count': count}
+        )
+        return age_brackets
+
+
+class Voucher(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    address = models.TextField()
+    birth_date = models.DateField(blank=True)
+    sent = models.BooleanField(default=False)
+    redeemed = models.BooleanField(default=False)
+
+    objects = VoucherManager()
+
+
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+
+class KarmaUser(AbstractUser):
+    karma = models.PositiveIntegerField(verbose_name='karma', default=0, blank=True)
+
+
+# settings.py
+# AUTH_USER_MODEL = 'profiles.KarmaUser'
+
+class User(AbstractUser):
+    class Types(models.TextChoices):
+        EATER = "EATER", "Eater"
+        SCOOPER = "SCOOPER", "Scooper"
+        INVENTOR = "INVENTOR", "Inventor"
+
+    base_type = Types.EATER
+    # What type of user are we?
+    type = models.CharField(_("Type"), max_length=50, choices=Types.choices, default=Types.EATER)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.type = self.base_type
+        return super().save(*args, **kwargs)
+
+
+class InventorManager(models.Manager):
+
+    def get_queryset(self, *args, **kwargs):
+        results = super().get_queryset(*args, **kwargs)
+        return results.filter(type=User.Types.INVENTOR)
+
+
+class Inventor(User):
+    objects = InventorManager()
+
+    class Meta:
+        proxy = True
+
+    def invent(self):
+        return "Delicious!"
+
+
+class Inventor(User):
+    inventorprofile = models.OneToOneField(...)
+    objects = InventorManager()
+
+    class Meta:
+        proxy = True
+
+    @property
+    def extra(self):
+        return self.inventorprofile
+
+
+class Scooper(User):
+    scooperprofile = models.OneToOneField(...)
+    objects = ScooperManager()
+
+    class Meta:
+        proxy = True
+
+    @property
+    def extra(self):
+        return self.scooperprofile
+
+
+class Eater(User):
+    eaterprofile = models.OneToOneField(...)
+    objects = EaterManager()
+
+    class Meta:
+        proxy = True
+
+    @property
+    def extra(self):
+        return self.eaterprofile

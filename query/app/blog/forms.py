@@ -12,6 +12,7 @@ class FlavorForm(forms.ModelForm):
 
     class Meta:
         model = Flavor
+        fields = ['title', 'slug', 'scoops_remaining']
 
 
 class IceCreamOrderForm(forms.Form):

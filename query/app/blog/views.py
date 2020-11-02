@@ -92,10 +92,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
-from django.views.generic import CreateView, UpdateView, DetailView, ListView
+from django.views.generic import CreateView, UpdateView, DetailView, ListView, TemplateView
 
 from blog.forms import FlavorForm
-from blog.models import Flavor, IceCreamStore
+from blog.models import Flavor, IceCreamStore, Voucher
 
 
 @permission_required('blog.close_task', login_url='/admin/login/')
@@ -146,3 +146,15 @@ class FlavorListView(TitleSearchMixin, ListView):
 
 class IceCreamListVIew(TitleSearchMixin, ListView):
     model = IceCreamStore
+
+
+# ----------------------------------------------------------------------------------------------------
+
+class GreenfeldRoyView(TemplateView):
+    template_name = 'vouchers/views_conditional.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['greenfields'] = Voucher.objects.filter(name__icontains='greenfeld')
+        context['roys'] = Voucher.objects.filter(name__icontains='roy')
+        return context
