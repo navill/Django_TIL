@@ -346,78 +346,83 @@ class Voucher(models.Model):
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-
-class KarmaUser(AbstractUser):
-    karma = models.PositiveIntegerField(verbose_name='karma', default=0, blank=True)
+#
+# class KarmaUser(AbstractUser):
+#     karma = models.PositiveIntegerField(verbose_name='karma', default=0, blank=True)
 
 
 # settings.py
 # AUTH_USER_MODEL = 'profiles.KarmaUser'
 
-class User(AbstractUser):
-    class Types(models.TextChoices):
-        EATER = "EATER", "Eater"
-        SCOOPER = "SCOOPER", "Scooper"
-        INVENTOR = "INVENTOR", "Inventor"
-
-    base_type = Types.EATER
-    # What type of user are we?
-    type = models.CharField(_("Type"), max_length=50, choices=Types.choices, default=Types.EATER)
-
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.type = self.base_type
-        return super().save(*args, **kwargs)
-
-
-class InventorManager(models.Manager):
-
-    def get_queryset(self, *args, **kwargs):
-        results = super().get_queryset(*args, **kwargs)
-        return results.filter(type=User.Types.INVENTOR)
+# class User(AbstractUser):
+#     class Types(models.TextChoices):
+#         EATER = "EATER", "Eater"
+#         SCOOPER = "SCOOPER", "Scooper"
+#         INVENTOR = "INVENTOR", "Inventor"
+#
+#     base_type = Types.EATER
+#     # What type of user are we?
+#     type = models.CharField(_("Type"), max_length=50, choices=Types.choices, default=Types.EATER)
+#
+#     def save(self, *args, **kwargs):
+#         if not self.pk:
+#             self.type = self.base_type
+#         return super().save(*args, **kwargs)
 
 
-class Inventor(User):
-    objects = InventorManager()
+# class InventorManager(models.Manager):
+#
+#     def get_queryset(self, *args, **kwargs):
+#         results = super().get_queryset(*args, **kwargs)
+#         return results.filter(type=User.Types.INVENTOR)
+#
+#
+# class Inventor(User):
+#     objects = InventorManager()
+#
+#     class Meta:
+#         proxy = True
+#
+#     def invent(self):
+#         return "Delicious!"
+#
+#
+# class Inventor(User):
+#     inventorprofile = models.OneToOneField(...)
+#     objects = InventorManager()
+#
+#     class Meta:
+#         proxy = True
+#
+#     @property
+#     def extra(self):
+#         return self.inventorprofile
+#
+#
+# class Scooper(User):
+#     scooperprofile = models.OneToOneField(...)
+#     objects = ScooperManager()
+#
+#     class Meta:
+#         proxy = True
+#
+#     @property
+#     def extra(self):
+#         return self.scooperprofile
+#
+#
+# class Eater(User):
+#     eaterprofile = models.OneToOneField(...)
+#     objects = EaterManager()
+#
+#     class Meta:
+#         proxy = True
+#
+#     @property
+#     def extra(self):
+#         return self.eaterprofile
 
-    class Meta:
-        proxy = True
+class MyModel(models.Model):
+    title = models.CharField(max_length=100, default='test titel')
+    value = models.IntegerField(default=100)
 
-    def invent(self):
-        return "Delicious!"
-
-
-class Inventor(User):
-    inventorprofile = models.OneToOneField(...)
-    objects = InventorManager()
-
-    class Meta:
-        proxy = True
-
-    @property
-    def extra(self):
-        return self.inventorprofile
-
-
-class Scooper(User):
-    scooperprofile = models.OneToOneField(...)
-    objects = ScooperManager()
-
-    class Meta:
-        proxy = True
-
-    @property
-    def extra(self):
-        return self.scooperprofile
-
-
-class Eater(User):
-    eaterprofile = models.OneToOneField(...)
-    objects = EaterManager()
-
-    class Meta:
-        proxy = True
-
-    @property
-    def extra(self):
-        return self.eaterprofile

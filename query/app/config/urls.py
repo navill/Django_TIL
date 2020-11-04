@@ -19,7 +19,7 @@ from django.urls import path, include
 
 # from blog.views import PostView, CommentView
 #
-from blog.views import test_view, FlavorCreateView, FlavorUpdateView
+from blog.views import test_view, FlavorCreateView, FlavorUpdateView, MyModelView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,4 +31,5 @@ urlpatterns = [
     path('list/', test_view),
     path('tasty/create/', FlavorCreateView.as_view(), name='create'),
     path('tasty/create/', FlavorUpdateView.as_view(), name='update'),
+    path('test/list/', MyModelView.as_view())
 ]

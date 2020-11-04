@@ -93,9 +93,12 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
 from django.views.generic import CreateView, UpdateView, DetailView, ListView, TemplateView
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
 
 from blog.forms import FlavorForm
-from blog.models import Flavor, IceCreamStore, Voucher
+from blog.models import Flavor, IceCreamStore, Voucher, MyModel
+from blog.serializers import MySerializer
 
 
 @permission_required('blog.close_task', login_url='/admin/login/')
@@ -158,3 +161,12 @@ class GreenfeldRoyView(TemplateView):
         context['greenfields'] = Voucher.objects.filter(name__icontains='greenfeld')
         context['roys'] = Voucher.objects.filter(name__icontains='roy')
         return context
+
+
+# ----------------------------------------------------------------------------------------------------
+class MyModelView(ListModelMixin, CreateModelMixin, GenericAPIView):
+    queryset = MyModel
+    serializer_class = MySerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
